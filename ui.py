@@ -66,6 +66,14 @@ def on_motion(event):
     if mouse_pressed:
         cambiar_color(event)
 
+# Función para colorizar vectorialmente
+def colorize_matrix(rect_matrix, generation):
+    color_matrix = np.where(generation == 1, ACTIVE_COLOR, DEACTIVE_COLOR)
+    def colorizing(rect, color):
+        canvas.itemconfig(rect, fill=color)
+    v_colorize_matrix = np.vectorize(colorizing)
+    v_colorize_matrix(rect_matrix, color_matrix)
+
 # Función para obtener matriz de canvas
 def generate_universe_array():
     def rect_to_val(rect):
@@ -82,24 +90,12 @@ def paint_next_generation():
         gR.index_iteration += 1
 
     next_generation = gR.siguiente_generacion(actual_generation)
-
-    color_next_generation = np.where(next_generation == 1, ACTIVE_COLOR, DEACTIVE_COLOR)
-
-    # def coloring(rect, color):
-    #     canvas.itemconfig(rect, fill=color)
-    # vfunc = np.vectorize(coloring)
-    # vfunc(rect_ids, color_next_generation)
-
-    for rect, color in zip(rect_ids.ravel(), color_next_generation.ravel()):
-        canvas.itemconfig(rect, fill=color)
+    colorize_matrix(rect_ids, next_generation)
 
 # Función para obtener generación previa
 def paint_prev_generation():
     prev_generation = gR.anterior_generacion()
-    color_prev_generation = np.where(prev_generation == 1, ACTIVE_COLOR, DEACTIVE_COLOR)
-
-    for rect, color in zip(rect_ids.ravel(), color_prev_generation.ravel()):
-        canvas.itemconfig(rect, fill=color)
+    colorize_matrix(rect_ids, prev_generation)
 
 # Siguiente generación con barra espaciadora
 press = [False]
@@ -124,8 +120,7 @@ root.bind("<KeyRelease-space>", on_space_release)
 def clean_canvas():
     gR.historia = [np.zeros((FILAS, COLUMNAS), dtype=int)]
     gR.index_iteration = 0
-    for item in canvas.find_all():
-        canvas.itemconfig(item, fill=DEACTIVE_COLOR)
+    colorize_matrix(rect_ids,gR.historia[0])
 
 # Canvas Widget para el juego
 canvas = tk.Canvas(root, width=TAM_CUADRO * COLUMNAS, height=TAM_CUADRO * FILAS)
